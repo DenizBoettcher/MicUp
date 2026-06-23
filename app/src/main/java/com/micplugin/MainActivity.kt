@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.os.PowerManager
 import androidx.lifecycle.Lifecycle
 import android.provider.Settings
 import android.os.Bundle
@@ -178,6 +179,10 @@ class MainActivity : ComponentActivity() {
 
     private fun requestBatteryOptimizationExemption() {
         if (Build.VERSION.SDK_INT >= 23) {
+            // Don't bother the user if the app is already exempt — otherwise the battery
+            // settings screen pops up on every launch / every time the app is reopened.
+            val pm = getSystemService(PowerManager::class.java)
+            if (pm != null && pm.isIgnoringBatteryOptimizations(packageName)) return
             val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
                 data = Uri.parse("package:$packageName")
             }
